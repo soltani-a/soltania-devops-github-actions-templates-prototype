@@ -1,0 +1,63 @@
+# .github/workflows/templates/nodejs/nodejs-ci-template.yaml
+
+name: Node.js CI Template
+
+# This field allows this workflow to be used as a reusable workflow.
+on:
+  workflow_call:
+    inputs:
+      node-version:
+        description: 'Node.js version to use for this project'
+        required: true
+        type: string
+        default: '20'
+      working-directory:
+        description: 'Directory containing the Node.js source code to analyze and test'
+        required: true
+        type: string
+        default: '.'
+
+jobs:
+  setup-nodejs:
+    name: Setup Node.js and Install Dependencies
+    runs-on: ubuntu-latest
+
+    env:
+      # Check for the presence of GitHub Actions environment variables or secrets
+      SONAR_PROJECT_KEY: ${{ secrets.SONAR_PROJECT_KEY || '' }}
+      SONAR_ORGANIZATION: ${{ secrets.SONAR_ORGANIZATION || '' }}
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN || '' }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4.2.1
+
+      - name: Display files
+        run: ls -la  # List the files to verify they are downloaded
+
+      - name: Setup Node.js ${{ inputs.node-version }}
+        uses: actions/setup-node@v4.0.4
+        with:
+          node-version: ${{ inputs.node-version }}
+
+      - name: Install Dependencies
+        run: |
+          npm ci
+
+      - name: Run ESLint
+        run: |
+          npm run lint ${{ inputs.working-directory }}
+
+      - name: Run Unit Tests
+        run: |
+          npm test ${{ inputs.working-directory }}
+
+      - name: SonarCloud Scan
+        if: env.SONAR_PROJECT_KEY != '' && env.SONAR_ORGANIZATION != '' && env.SONAR_TOKEN != ''
+        uses: sonarsource/sonarcloud-github-action@v3.1.0
+        with:
+          projectBaseDir: ${{ inputs.working-directory }}
+          args: >
+            -Dsonar.projectKey=${{ env.SONAR_PROJECT_KEY }}
+            -Dsonar.organization=${{ env.SONAR_ORGANIZATION }}
+            -Dsonar.login=${{ env.SONAR_TOKEN }}

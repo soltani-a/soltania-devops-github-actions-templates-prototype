@@ -1,0 +1,81 @@
+# .github/workflows/templates/python/python-ci-template.yaml
+
+name: Python CI Template
+
+# This field allows this workflow to be used as a reusable workflow.
+on:
+  workflow_call:
+    inputs:
+      python-versions:
+        description: 'List of Python versions to use'
+        required: true
+        type: string
+        default: '3.12'
+      source-directory:
+        description: 'Directory containing the Python source code to analyze and test'
+        required: true
+        type: string
+        default: '.'
+      test-directory:
+        description: 'Directory containing the Python test source code to analyze and test'
+        required: true
+        type: string
+        default: '.'
+      sonar-project-key:
+        description: 'SonarQube or SonarCloud project key to use for the analysis'
+        required: false
+        type: string
+      sonar-organization:
+        description: 'Name of the SonarCloud organization'
+        required: false
+        type: string
+      sonar-token:
+        description: 'SonarCloud authentication token'
+        required: false
+        type: string
+
+jobs:
+  setup-python:
+    name: Setup Python Environment and Dependencies
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4.2.1
+
+      - name: Setup Python ${{ inputs.python-versions }}
+        uses: actions/setup-python@v5.2.0
+        with:
+          python-version: ${{ inputs.python-versions }}
+
+      - name: Cache pip dependencies
+        id: cache-pip
+        uses: actions/cache@v4.1.1
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ inputs.python-versions }}-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-${{ inputs.python-versions }}-
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt flake8 black pytest
+
+      - name: Run Black Formatter
+        run: |
+          black ${{ inputs.source-directory }} --check
+
+      - name: Run Flake8 Linter
+        run: |
+          flake8 ${{ inputs.source-directory }}
+
+      - name: Run Pytest
+        run: |
+          pytest ${{ inputs.test-directory }} --disable-warnings
+
+      - name: SonarCloud Scan
+        if: env.SONAR_TOKEN != ''
+        uses: sonarsource/sonarcloud-github-action@v3.1.0
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN || '' }}

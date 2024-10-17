@@ -1,0 +1,148 @@
+# .github/workflows/templates/terraform/terraform-ci-template.yaml
+
+name: Terraform CI Template (GitHub Provider)
+
+# This field allows this workflow to be used as a reusable workflow.
+on:
+  workflow_call:
+    inputs:
+      terraform-directory:
+        description: 'Directory containing the Terraform configuration files'
+        required: true
+        type: string
+        default: '.'
+      github-token:
+        description: 'GitHub token for authenticating with the Terraform GitHub provider'
+        required: true
+        type: string
+      sonar-project-key:
+        description: 'SonarQube or SonarCloud project key to use for the analysis'
+        required: false
+        type: string
+      sonar-organization:
+        description: 'Name of the SonarCloud organization'
+        required: false
+        type: string
+      sonar-token:
+        description: 'SonarCloud authentication token'
+        required: false
+        type: string
+      infracost-api-key:
+        description: 'API key for Infracost to estimate costs'
+        required: false
+        type: string
+
+jobs:
+  setup-terraform:
+    name: Setup Terraform Environment
+    runs-on: ubuntu-latest
+    env:
+      ENVIRONMENT: ${{ 'dev' }}  
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4.2.1
+
+      # Setup Terraform CLI
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      # Configure GitHub Credentials
+      - name: Version terraform
+        run: |
+          terraform --version
+
+      # Configure GitHub Credentials
+      - name: Set up GitHub Credentials for Terraform Provider
+        run: |
+          echo "credentials \"github.com\" { token = \"${{ inputs.github-token }}\" }" > ~/.terraformrc
+
+      # Cache Terraform plugins to speed up the workflow
+      - name: Cache Terraform plugins
+        uses: actions/cache@v4.1.1
+        with:
+          path: ~/.terraform.d/plugin-cache
+          key: terraform-plugin-${{ hashFiles('**/*.tf') }}
+          restore-keys: |
+            terraform-plugin-
+
+      # Run terraform fmt to format code and check for discrepancies
+      - name: Run Terraform FMT
+        run: |
+          cd ${{ inputs.terraform-directory }}
+          terraform fmt -recursive -check -diff
+
+      # Initialize Terraform in the specified directory
+      - name: Terraform Init
+        run: |
+          cd ${{ inputs.terraform-directory }}
+          terraform init -input=false
+
+      # Run terraform validate to ensure the configuration is syntactically valid
+      - name: Run Terraform Validate
+        run: |
+          cd ${{ inputs.terraform-directory }}
+          terraform validate
+
+      # Run terraform tests for verifying module functionality
+      - name: Run Terraform Tests
+        run: |
+          cd ${{ inputs.terraform-directory }}
+          terraform test
+
+      - name: Setup Infracost
+        if: ${{ inputs.infracost-api-key }} != ''
+        run: |
+          curl -s https://raw.githubusercontent.com/infracost/infracost/master/scripts/install.sh | bash
+
+      # Run Infracost to estimate infrastructure costs
+      - name: Run Infracost
+        if: env.INFRACOST_API_KEY != ''
+        env:
+          INFRACOST_API_KEY: ${{ inputs.infracost-api-key }}
+        run: |
+          infracost breakdown --format json --out-file infracost.json
+          cat infracost.json
+
+      # Run SonarQube Scan
+      - name: SonarCloud Scan
+        if: env.SONAR_TOKEN != ''
+        uses: sonarsource/sonarcloud-github-action@v3.1.0
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN || '' }}
+
+      # Run terraform plan to generate an execution plan
+      - name: Terraform Plan
+        run: |
+          cd ${{ inputs.terraform-directory }}
+          terraform plan -var-file="terraform.${ENVIRONMENT}.tfvars"
+
+  approval:
+    # Environment approval step before applying changes on main branch
+    name: Approval for Apply on Main Branch
+    runs-on: ubuntu-latest
+    needs: setup-terraform
+    if: github.ref == 'refs/heads/main'
+
+    # Add environment and permissions for the approval step
+    environment:
+      name: production
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: Approval step
+        run: echo "Waiting for approval to proceed with Terraform apply."
+
+  apply:
+    name: Apply Terraform Changes
+    runs-on: ubuntu-latest
+    needs: [approval]
+    if: github.ref != 'refs/heads/main' || (github.ref == 'refs/heads/main' && github.event.review.state == 'approved')
+
+    steps:
+      # Apply the Terraform changes if approved on main or directly on other branches
+      - name: Terraform Apply
+        run: |
+          terraform apply -auto-approve tfplan
