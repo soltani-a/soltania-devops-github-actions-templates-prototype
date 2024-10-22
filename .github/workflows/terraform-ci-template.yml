@@ -11,10 +11,16 @@ on:
         required: true
         type: string
         default: '.'
-      github-token:
-        description: 'GitHub token for authenticating with the Terraform GitHub provider'
-        required: true
+      environment:
+        description: 'The environment to use (e.g., dev, prod)'
+        required: false
+        default: 'dev'
         type: string
+      dry-run:
+        description: 'Enable or disable dry-run mode'
+        required: false
+        default: false
+        type: boolean
       sonar-project-key:
         description: 'SonarQube or SonarCloud project key to use for the analysis'
         required: false
@@ -31,13 +37,32 @@ on:
         description: 'API key for Infracost to estimate costs'
         required: false
         type: string
+      oci-region:
+        type: string
+        required: false
+        default: 'eu-paris-1'
+      aws-s3-endpoint-url:
+        type: string
+        required: false
+        default: ''
+      aws-s3-bucket-name:
+        type: string
+        required: false
+        default: ''
+      aws-s3-region:
+        type: string
+        required: false
+        default: 'eu-west-1'
 
 jobs:
   setup-terraform:
     name: Setup Terraform Environment
     runs-on: ubuntu-latest
     env:
-      ENVIRONMENT: ${{ 'dev' }}  
+      ENVIRONMENT: dev
+      
+    # Utilisation de l'environnement pour récupérer les secrets de github actions
+    environment: ${{ inputs.environment }}
 
     steps:
       - name: Checkout code
@@ -51,11 +76,6 @@ jobs:
       - name: Version terraform
         run: |
           terraform --version
-
-      # Configure GitHub Credentials
-      - name: Set up GitHub Credentials for Terraform Provider
-        run: |
-          echo "credentials \"github.com\" { token = \"${{ inputs.github-token }}\" }" > ~/.terraformrc
 
       # Cache Terraform plugins to speed up the workflow
       - name: Cache Terraform plugins
@@ -74,9 +94,15 @@ jobs:
 
       # Initialize Terraform in the specified directory
       - name: Terraform Init
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_S3_ENDPOINT_URL: ${{ inputs.aws-s3-endpoint-url }}
+          AWS_S3_BUCKET_NAME: ${{ inputs.aws-s3-bucket-name }}
         run: |
           cd ${{ inputs.terraform-directory }}
           terraform init -input=false
+      #                      -backend-config="key=env/${{ inputs.environment }}/terraform.tfstate"
 
       # Run terraform validate to ensure the configuration is syntactically valid
       - name: Run Terraform Validate
@@ -113,9 +139,33 @@ jobs:
 
       # Run terraform plan to generate an execution plan
       - name: Terraform Plan
+        env:
+          TF_VAR_oci_provider_private_key: ${{ secrets.OCI_PROVIDER_PRIVATE_KEY }}
+          TF_VAR_oci_provider_tenancy_ocid: ${{ secrets.OCI_PROVIDER_TENANCY_OCID }}
+          TF_VAR_oci_provider_user_ocid: ${{ secrets.OCI_PROVIDER_USER_OCID }}
+          TF_VAR_oci_provider_fingerprint: ${{ secrets.OCI_PROVIDER_FINGERPRINT }}
+          TF_VAR_oci_compartment_id: ${{ secrets.OCI_COMPARTMENT_ID }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          TF_VAR_oci_region: ${{ inputs.oci-region }}
+          AWS_S3_ENDPOINT_URL: ${{ inputs.aws-s3-endpoint-url }}
+          AWS_S3_BUCKET_NAME: ${{ inputs.aws-s3-bucket-name }}
+          AWS_REGION: ${{ inputs.aws-s3-region }}
+
         run: |
           cd ${{ inputs.terraform-directory }}
-          terraform plan -var-file="terraform.${ENVIRONMENT}.tfvars"
+          terraform plan \
+            -var-file="terraform.${{ inputs.environment }}.tfvars" \
+            -state="env/${{ inputs.environment }}/terraform.tfstate" \
+            -out=terraform.tfplan
+
+      # Upload the Terraform plan as an artifact
+      - name: Upload Terraform Plan
+        uses: actions/upload-artifact@v4.4.3
+        with:
+          name: terraform-tfplan
+          path: ${{ inputs.terraform-directory }}/terraform.tfplan
+            
 
   approval:
     # Environment approval step before applying changes on main branch
@@ -126,7 +176,7 @@ jobs:
 
     # Add environment and permissions for the approval step
     environment:
-      name: production
+      name: dev
     permissions:
       id-token: write
       contents: read
@@ -142,7 +192,14 @@ jobs:
     if: github.ref != 'refs/heads/main' || (github.ref == 'refs/heads/main' && github.event.review.state == 'approved')
 
     steps:
+    # Download the Terraform plan from the previous step
+      - name: Download Terraform Plan
+        uses: actions/download-artifact@v3
+        with:
+          name: terraform-tfplan
+          
       # Apply the Terraform changes if approved on main or directly on other branches
       - name: Terraform Apply
         run: |
-          terraform apply -auto-approve tfplan
+          terraform apply -auto-approve \
+            -state="env/${{ inputs.environment }}/terraform.tfstate" $terraform_file_plan_name
