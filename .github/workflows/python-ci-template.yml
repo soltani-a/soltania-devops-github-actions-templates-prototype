@@ -6,8 +6,8 @@ name: Python CI Template
 on:
   workflow_call:
     inputs:
-      python-versions:
-        description: 'List of Python versions to use'
+      python-version:
+        description: 'Python version to use'
         required: true
         type: string
         default: '3.12'
@@ -43,19 +43,19 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4.2.1
 
-      - name: Setup Python ${{ inputs.python-versions }}
+      - name: Setup Python ${{ inputs.python-version }}
         uses: actions/setup-python@v5.2.0
         with:
-          python-version: ${{ inputs.python-versions }}
+          python-version: ${{ inputs.python-version }}
 
       - name: Cache pip dependencies
         id: cache-pip
         uses: actions/cache@v4.1.1
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ inputs.python-versions }}-${{ hashFiles('**/requirements.txt') }}
+          key: ${{ runner.os }}-pip-${{ inputs.python-version }}-${{ hashFiles('**/requirements.txt') }}
           restore-keys: |
-            ${{ runner.os }}-pip-${{ inputs.python-versions }}-
+            ${{ runner.os }}-pip-${{ inputs.python-version }}-
 
       - name: Install dependencies
         run: |
