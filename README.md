@@ -109,15 +109,13 @@ graph TD
     C[Repo B]:::repo
     D[Terraform Workflows]:::workflow
     E[Docker Workflows]:::workflow
-
     B -->|Calls workflow| A
     C -->|Calls workflow| A
     B -->|Calls workflow| D
     C -->|Calls workflow| E
-
-    classDef template fill=#0366d6,stroke=#fff,stroke-width=2px,color=white,font-weight:bold
-    classDef repo fill=#28a745,stroke=#fff,stroke-width=2px,color=white
-    classDef workflow fill=#f1c40f,stroke=#fff,stroke-width=2px,color=white,font-weight:bold
+    classDef template fill:#0366d6,stroke:#fff,stroke-width:2px,color:#fff
+    classDef repo fill:#28a745,stroke:#fff,stroke-width:2px,color:#fff
+    classDef workflow fill:#f1c40f,stroke:#fff,stroke-width:2px,color:#fff
 ```
 
 ---
