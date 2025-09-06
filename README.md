@@ -1,8 +1,6 @@
-# Générer le README.md pour le repo soltania-devops-github-actions-templates-prototype
+# 🚀 soltania-devops-github-actions-templates-prototype
 
-readme_content = """# soltania-devops-github-actions-templates-prototype
-
-## Overview
+## 📖 Overview
 
 This repository contains **reusable GitHub Actions workflows** designed to provide a consistent CI/CD experience across multiple repositories.  
 By centralizing workflows here, you can ensure **DRY principles**, simplify updates, and maintain a **single source of truth** for your DevOps automation.
@@ -19,17 +17,13 @@ By centralizing workflows here, you can ensure **DRY principles**, simplify upda
 ---
 
 ## Repository Structure
-
+```
 /
 ├── .github/
 │ └── workflows/
 │ └── nodejs-ci-template.yml # Reusable Node.js CI workflow
 ├── README.md # Project documentation
-
-Toujours afficher les détails
-
-
----
+```
 
 
 ## How It Works
@@ -141,11 +135,3 @@ License
 This project is licensed under the MIT License - see the LICENSE
 
 file for details.
-"""
-Écriture du fichier
-
-file_path = "/mnt/data/README_github_actions_templates.md"
-with open(file_path, "w") as f:
-f.write(readme_content)
-
-file_path
