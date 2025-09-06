@@ -1,35 +1,62 @@
 # 🚀 soltania-devops-github-actions-templates-prototype
 
+[![Node.js CI](https://img.shields.io/github/actions/workflow/status/soltani-a/soltania-devops-github-actions-templates-prototype/.github/workflows/nodejs-ci-template.yml?branch=main\&label=Node.js%20CI\&logo=github)](https://github.com/soltani-a/soltania-devops-github-actions-templates-prototype/actions)
+[![Reusable Workflow](https://img.shields.io/badge/Reusable-Workflow-green?logo=github-actions)](https://docs.github.com/en/actions/using-workflows/reusing-workflows)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
+---
+
 ## 📖 Overview
 
-This repository contains **reusable GitHub Actions workflows** designed to provide a consistent CI/CD experience across multiple repositories.  
-By centralizing workflows here, you can ensure **DRY principles**, simplify updates, and maintain a **single source of truth** for your DevOps automation.
+Centralize your CI/CD workflows with **reusable GitHub Actions templates**. This repository allows you to:
+
+* ✅ Apply **DRY principles**
+* ✅ Maintain a **single source of truth**
+* ✅ Simplify updates across multiple repositories
 
 ---
 
-## Key Features
+## 📑 Table of Contents
 
-- 🛠️ **Reusable workflows**: Share the same CI/CD templates across many repositories.
-- ⚡ **Simplified maintenance**: Update one workflow, and all consumers benefit instantly.
-- 🔐 **Secure by design**: Supports `secrets: inherit` for seamless authentication.
-- 🚀 **Node.js template ready**: Example workflow `nodejs-ci-template.yml` for Node.js projects.
+* [Key Features](#-key-features)
+* [Repository Structure](#-repository-structure)
+* [How It Works](#-how-it-works)
+* [Example Workflow](#-example-workflow)
+* [Architecture](#-architecture)
+* [Repositories Using This Template](#-repositories-using-this-template)
+* [Benefits](#-benefits-of-a-centralized-workflow-repo)
+* [Contributing](#-contributing)
+* [License](#-license)
 
 ---
 
-## Repository Structure
-```
+## 🔑 Key Features
+
+* 🛠️ **Reusable workflows**: share CI/CD templates across multiple projects
+* ⚡ **Simplified maintenance**: update once, benefit everywhere
+* 🔐 **Secure**: supports `secrets: inherit`
+* 🚀 **Node.js template ready** (`nodejs-ci-template.yml`)
+* 🐳 **Docker-ready workflows**
+* 🌍 **Terraform & Cloud workflows**
+* 🎨 **Visual diagrams** to understand architecture
+
+---
+
+## 📂 Repository Structure
+
+```text
 /
 ├── .github/
-│ └── workflows/
-│ └── nodejs-ci-template.yml # Reusable Node.js CI workflow
-├── README.md # Project documentation
+│   └── workflows/
+│       └── nodejs-ci-template.yml  # Reusable Node.js CI workflow
+├── README.md                       # Project documentation
 ```
 
+---
 
-## How It Works
+## ⚙️ How It Works
 
-Other repositories can **call** these workflows using the `uses:` keyword.  
-For example:
+Call workflows from another repository:
 
 ```yaml
 jobs:
@@ -39,99 +66,103 @@ jobs:
     with:
       node-version: '20'
       working-directory: ''
+```
 
-    uses: Points to the reusable workflow hosted in this repository.
+* **`uses`**: reference the reusable workflow
+* **`secrets: inherit`**: automatically uses secrets from the calling repository
+* **`with`**: input variables for workflow customization
 
-    secrets: inherit: Inherits secrets defined in the calling repository.
+[View Node.js CI Template](.github/workflows/nodejs-ci-template.yml)
 
-    with: Passes input variables to customize workflow behavior.
+---
 
-Architecture
+## ⚡ Example Workflow
 
-The diagram below shows how this repository powers multiple other repositories:
+Add this to `.github/workflows/main.yml` in your repository:
 
-Toujours afficher les détails
-
-graph TD
-
-    A[soltania-devops-github-actions-templates-prototype]:::template
-
-    
-
-    B[soltania-devops-tf-functional-test-bruno]:::repo
-
-    C[soltania-devops-tf-github-prototype]:::repo
-
-
-
-    B -->|Calls workflow| A
-
-    C -->|Calls workflow| A
-
-
-
-    classDef template fill=#0366d6,stroke=#fff,stroke-width=2px,color=white,font-weight:bold
-
-    classDef repo fill=#28a745,stroke=#fff,stroke-width=2px,color=white
-
-Repositories Using This Template
-Repository	Description
-soltania-devops-tf-functional-test-bruno
-Runs Bruno CLI tests in CI/CD.
-soltania-devops-tf-github-prototype
-Manages GitHub repositories using Terraform.
-Getting Started
-
-    Add a GitHub Actions workflow in your repository (e.g., .github/workflows/main.yml):
-
-Toujours afficher les détails
-
+```yaml
 name: Run Node.js CI
 on:
   push:
-    branches:
-      - main
+    branches: [main]
   pull_request:
-    branches:
-      - main
+    branches: [main]
 
 jobs:
   nodejs-workflow:
     uses: soltani-a/soltania-devops-github-actions-templates-prototype/.github/workflows/nodejs-ci-template.yml@main
     secrets: inherit
+    with:
+      node-version: '20'
+```
 
-    Push your changes, and the workflow will execute using this template.
+Push your changes and watch the workflow execute automatically.
 
-Benefits of a Centralized Workflow Repo
+---
 
-    ✅ Consistency: One source of truth for CI/CD pipelines.
+## 🏛 Architecture
 
-    ✅ Scalability: Add more workflows (e.g., Terraform, Docker, AWS) for all projects.
+```mermaid
+graph TD
+    A[Workflow Template Repo]:::template
+    B[Repo A]:::repo
+    C[Repo B]:::repo
+    D[Terraform Workflows]:::workflow
+    E[Docker Workflows]:::workflow
 
-    ✅ Maintainability: Fix bugs or upgrade tools in one place.
+    B -->|Calls workflow| A
+    C -->|Calls workflow| A
+    B -->|Calls workflow| D
+    C -->|Calls workflow| E
 
-Contributing
+    classDef template fill=#0366d6,stroke=#fff,stroke-width=2px,color=white,font-weight:bold
+    classDef repo fill=#28a745,stroke=#fff,stroke-width=2px,color=white
+    classDef workflow fill=#f1c40f,stroke=#fff,stroke-width=2px,color=white,font-weight:bold
+```
 
-Contributions are welcome!
+---
 
-    Fork the repository.
+## 📦 Repositories Using This Template
 
-    Create a feature branch:
+| Repository                                                                                                        | Description                                 |
+| ----------------------------------------------------------------------------------------------------------------- | ------------------------------------------- |
+| [soltania-devops-tf-functional-test-bruno](https://github.com/soltani-a/soltania-devops-tf-functional-test-bruno) | Runs Bruno CLI tests in CI/CD               |
+| [soltania-devops-tf-github-prototype](https://github.com/soltani-a/soltania-devops-tf-github-prototype)           | Manages GitHub repositories using Terraform |
 
-Toujours afficher les détails
+---
 
+## 🌟 Benefits of a Centralized Workflow Repo
+
+* ✅ **Consistency**: one source of truth for pipelines
+* ✅ **Scalability**: easily add new workflows (Terraform, Docker, Node.js, AWS)
+* ✅ **Maintainability**: fix bugs or upgrade tools in one place
+* ✅ **Security**: centralize secrets and authentication best practices
+
+---
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch:
+
+```bash
 git checkout -b feature/new-workflow
+```
 
-Commit changes:
+3. Commit your changes:
 
-Toujours afficher les détails
+```bash
+git commit -m 'Add a new reusable workflow'
+```
 
-    git commit -m 'Add a new reusable workflow'
+4. Push and open a Pull Request
 
-    Push and open a Pull Request.
+---
 
-License
+## 📜 License
 
-This project is licensed under the MIT License - see the LICENSE
+This project is licensed under the **MIT License**. See the [LICENSE](LICENSE) file for details.
 
-file for details.
+---
+
+> 💡 **Tip:** Make your repository “Reusable Workflow Ready” by following GitHub’s [documentation](https://docs.github.com/en/actions/using-workflows/reusing-workflows).
