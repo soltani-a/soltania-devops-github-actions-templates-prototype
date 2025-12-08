@@ -1,63 +1,80 @@
-# .github/workflows/templates/nodejs/nodejs-ci-template.yaml
-
 name: Node.js CI Template
 
-# This field allows this workflow to be used as a reusable workflow.
 on:
   workflow_call:
     inputs:
       node-version:
-        description: 'Node.js version to use for this project'
-        required: true
+        description: 'Node.js version to use'
+        required: false
         type: string
         default: '20'
       working-directory:
-        description: 'Directory containing the Node.js source code to analyze and test'
-        required: true
+        description: 'Directory containing package.json'
+        required: false
         type: string
         default: '.'
+    secrets:
+      SONAR_TOKEN:
+        required: false
+      SONAR_PROJECT_KEY:
+        required: false
+      SONAR_ORGANIZATION:
+        required: false
 
 jobs:
-  setup-nodejs:
-    name: Setup Node.js and Install Dependencies
+  build-and-test:
+    name: Build, Test & Analyze
     runs-on: ubuntu-latest
-
-    env:
-      # Check for the presence of GitHub Actions environment variables or secrets
-      SONAR_PROJECT_KEY: ${{ secrets.SONAR_PROJECT_KEY || '' }}
-      SONAR_ORGANIZATION: ${{ secrets.SONAR_ORGANIZATION || '' }}
-      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN || '' }}
+    
+    # On définit le working-directory par défaut pour toutes les étapes 'run' de ce job
+    defaults:
+      run:
+        working-directory: ${{ inputs.working-directory }}
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4.2.1
+      - name: 📦 Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Important pour SonarCloud (analyse de l'historique git)
 
-      - name: Display files
-        run: ls -la  # List the files to verify they are downloaded
-
-      - name: Setup Node.js ${{ inputs.node-version }}
-        uses: actions/setup-node@v4.0.4
+      - name: 🟢 Setup Node.js ${{ inputs.node-version }}
+        uses: actions/setup-node@v4
         with:
           node-version: ${{ inputs.node-version }}
+          cache: 'npm'
+          # Indispensable si le package-lock.json n'est pas à la racine
+          cache-dependency-path: ${{ inputs.working-directory }}/package-lock.json
 
-      - name: Install Dependencies
-        run: |
-          npm ci
+      - name: 🔧 Install Dependencies
+        run: npm ci
 
-      - name: Run ESLint
-        run: |
-          npm run lint ${{ inputs.working-directory }}
+      - name: 🔍 Run Lint
+        # On continue même si le lint échoue pour voir les tests, 
+        # ou tu peux enlever 'continue-on-error' pour être strict.
+        continue-on-error: true 
+        run: npm run lint --if-present
 
-      - name: Run Unit Tests
-        run: |
-          npm test ${{ inputs.working-directory }}
+      - name: ▶️ Run Unit Tests
+        run: npm test
 
-      - name: SonarCloud Scan
-        if: env.SONAR_PROJECT_KEY != '' && env.SONAR_ORGANIZATION != '' && env.SONAR_TOKEN != ''
+      - name: 📊 Upload Test Results
+        # Sauvegarde le rapport JUnit comme artefact visible dans GitHub
+        if: always() 
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: ${{ inputs.working-directory }}/**/junit.xml
+          retention-days: 5
+
+      - name: 📡 SonarCloud Scan
+        # S'exécute uniquement si le token est fourni
+        if: ${{ secrets.SONAR_TOKEN != '' }}
         uses: sonarsource/sonarcloud-github-action@v3.1.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Nécessaire par défaut
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         with:
           projectBaseDir: ${{ inputs.working-directory }}
           args: >
-            -Dsonar.projectKey=${{ env.SONAR_PROJECT_KEY }}
-            -Dsonar.organization=${{ env.SONAR_ORGANIZATION }}
-            -Dsonar.login=${{ env.SONAR_TOKEN }}
+            -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY }}
+            -Dsonar.organization=${{ secrets.SONAR_ORGANIZATION }}
