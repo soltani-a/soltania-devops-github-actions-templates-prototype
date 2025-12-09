@@ -1,9 +1,7 @@
 # 🚀 Soltania DevOps: Centralized GitHub Actions Templates
 
 [![Status](https://img.shields.io/badge/Status-Active-success?style=flat-square)]()
-[![Node.js CI](https://img.shields.io/badge/Node.js-CI-green?logo=nodedotjs&logoColor=white&style=flat-square)](.github/workflows/nodejs-ci-template.yml)
-[![Python CI](https://img.shields.io/badge/Python-CI-blue?logo=python&logoColor=white&style=flat-square)](.github/workflows/python-ci-template.yml)
-[![Terraform CI](https://img.shields.io/badge/Terraform-CI-purple?logo=terraform&logoColor=white&style=flat-square)](.github/workflows/terraform-ci-template.yml)
+[![Maintained?](https://img.shields.io/badge/Maintained%3F-yes-green.svg?style=flat-square)]()
 [![License](https://img.shields.io/badge/License-MIT-lightgrey.svg?style=flat-square)](LICENSE)
 
 ---
@@ -54,13 +52,17 @@ graph TD
 
 -----
 
-## 📦 Available Workflows & Usage
+## 📦 Catalog of Workflows
 
 To use a workflow, create a YAML file in your repository (e.g., `.github/workflows/ci.yml`) and reference the specific template.
 
-### 🟢 Node.js CI
+### 🏗️ Application CI (Build & Test)
 
-*Standardizes linting, testing, and building for Node applications.*
+Standardized pipelines for building, testing, and linting application code.
+
+#### 🟢 Node.js CI
+
+*Features: Dependencies caching (`npm ci`), Linting, Unit Tests.*
 
 | Input | Description | Default |
 | :--- | :--- | :--- |
@@ -76,9 +78,14 @@ jobs:
       node-version: '20'
 ```
 
-### 🔵 Python CI
+#### 🔵 Python CI
 
-*Handles Python dependency installation, Linting (Flake8), and Testing (Pytest).*
+*Features: Dependency installation, Flake8 Linting, Pytest execution.*
+
+| Input | Description | Default |
+| :--- | :--- | :--- |
+| `python-version` | The specific Python version to use. | `3.10` |
+| `working-dir` | Root directory of the python project. | `.` |
 
 ```yaml
 jobs:
@@ -89,9 +96,20 @@ jobs:
       python-version: '3.10'
 ```
 
-### 🟣 Terraform CI
+-----
 
-*Manages the Infrastructure as Code lifecycle: Formatting, Validation, Linting, and Planning.*
+### ☁️ Infrastructure as Code (Provisioning)
+
+Workflows for managing cloud resources and state with strict validation.
+
+#### 🟣 Terraform CI
+
+*Features: `fmt` check, `validate`, `tflint` analysis, and `plan` generation.*
+
+| Input | Description | Default |
+| :--- | :--- | :--- |
+| `tf-version` | The Terraform version to use. | `latest` |
+| `working-dir` | Directory containing main.tf. | `.` |
 
 ```yaml
 jobs:
@@ -123,6 +141,8 @@ Contributions are welcome\! If you wish to add a new workflow or improve an exis
 2.  Create a **Feature Branch** (`git checkout -b feature/new-template`).
 3.  **Test Locally** using `nektos/act` or a private fork.
 4.  Open a **Pull Request**.
+
+Please refer to [CONTRIBUTING.md](https://www.google.com/search?q=CONTRIBUTING.md) and [CODE\_OF\_CONDUCT.md](https://www.google.com/search?q=CODE_OF_CONDUCT.md) for more details.
 
 -----
 

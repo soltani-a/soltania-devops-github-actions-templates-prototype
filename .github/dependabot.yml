@@ -1,0 +1,23 @@
+version: 2
+updates:
+  # 1. GitHub Actions (The engine itself)
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    groups:
+      actions:
+        patterns:
+          - "*"
+
+  # 2. Docker (If you add Dockerfiles later)
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+      
+  # 3. Terraform (If strictly managed here)
+  - package-ecosystem: "terraform"
+    directory: "/"
+    schedule:
+      interval: "monthly"
