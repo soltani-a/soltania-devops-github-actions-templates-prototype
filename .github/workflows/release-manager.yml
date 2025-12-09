@@ -2,22 +2,21 @@ name: Release Drafter
 
 on:
   push:
-    # branches to consider in the event; optional, defaults to all
+    # Met à jour le brouillon quand on merge sur main
     branches:
       - main
-  # pull_request event is required only for autolabeler
-  pull_request:
-    types: [opened, reopened, synchronize]
+  # Trigger pour l'autolabeler (fonctionne même avec les forks)
+  pull_request_target:
+    types: [opened, reopened, synchronize, edited]
 
 permissions:
   contents: write
-  pull-requests: read
+  pull-requests: write  # Important pour ajouter des labels
 
 jobs:
   update_release_draft:
     runs-on: ubuntu-latest
     steps:
-      # Drafts your next Release notes as Pull Requests are merged
       - uses: release-drafter/release-drafter@v6
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
