@@ -36,9 +36,9 @@ graph TD
     end
 
     subgraph "Consumer Ecosystem"
-        R1[<b>Functional Tests</b><br/>(Bruno/API)]:::consumer
-        R2[<b>Infra Governance</b><br/>(GitHub Provider)]:::consumer
-        R3[<b>Future Projects</b>]:::consumer
+        R1["<b>Functional Tests</b><br/>(Bruno/API)"]:::consumer
+        R2["<b>Infra Governance</b><br/>(GitHub Provider)"]:::consumer
+        R3["<b>Future Projects</b>"]:::consumer
     end
 
     R1 -.->|Inherits| TF
