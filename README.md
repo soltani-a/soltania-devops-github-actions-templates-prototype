@@ -72,7 +72,7 @@ Standardized pipelines for building, testing, and linting application code.
 ```yaml
 jobs:
   build:
-    uses: soltani-a/soltania-devops-github-actions-templates-prototype/.github/workflows/nodejs-ci-template.yml@main
+    uses: soltani-a/soltania-platform-workflows/.github/workflows/nodejs-ci-template.yml@main
     secrets: inherit
     with:
       node-version: '20'
@@ -90,7 +90,7 @@ jobs:
 ```yaml
 jobs:
   test:
-    uses: soltani-a/soltania-devops-github-actions-templates-prototype/.github/workflows/python-ci-template.yml@main
+    uses: soltani-a/soltania-platform-workflows/.github/workflows/python-ci-template.yml@main
     secrets: inherit
     with:
       python-version: '3.10'
@@ -114,7 +114,7 @@ Workflows for managing cloud resources and state with strict validation.
 ```yaml
 jobs:
   terraform:
-    uses: soltani-a/soltania-devops-github-actions-templates-prototype/.github/workflows/terraform-ci-template.yml@main
+    uses: soltani-a/soltania-platform-workflows/.github/workflows/terraform-ci-template.yml@main
     secrets: inherit
     with:
       tf-version: '1.5.0'
