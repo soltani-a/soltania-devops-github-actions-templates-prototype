@@ -2,22 +2,26 @@ name: Release Drafter
 
 on:
   push:
-    # branches to consider in the event; optional, defaults to all
+    # 1. Met à jour le brouillon de release UNIQUEMENT quand on merge sur main
     branches:
       - main
-  # pull_request event is required only for autolabeler
-  pull_request:
+  
+  # 2. Trigger pour l'autolabeler quand une PR est ouverte/modifiée
+  pull_request_target:
     types: [opened, reopened, synchronize]
 
 permissions:
-  contents: write
-  pull-requests: read
+  contents: write      # Pour créer/éditer la release
+  pull-requests: write # Pour ajouter les labels sur les PRs
 
 jobs:
   update_release_draft:
     runs-on: ubuntu-latest
     steps:
-      # Drafts your next Release notes as Pull Requests are merged
       - uses: release-drafter/release-drafter@v6
+        with:
+          # 👇 C'est la ligne magique qui corrige l'erreur 422
+          # Si l'événement est une PR, on désactive la création de release (on fait juste les labels)
+          disable-releaser: ${{ github.event_name == 'pull_request_target' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
