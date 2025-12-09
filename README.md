@@ -1,166 +1,131 @@
-# 🚀 soltania-devops-github-actions-templates-prototype
+# 🚀 Soltania DevOps: Centralized GitHub Actions Templates
 
-[![Node.js CI](https://img.shields.io/github/actions/workflow/status/soltani-a/soltania-devops-github-actions-templates-prototype/.github/workflows/nodejs-ci-template.yml?branch=main\&label=Node.js%20CI\&logo=github)](https://github.com/soltani-a/soltania-devops-github-actions-templates-prototype/actions)
-[![Reusable Workflow](https://img.shields.io/badge/Reusable-Workflow-green?logo=github-actions)](https://docs.github.com/en/actions/using-workflows/reusing-workflows)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Status](https://img.shields.io/badge/Status-Active-success?style=flat-square)]()
+[![Node.js CI](https://img.shields.io/badge/Node.js-CI-green?logo=nodedotjs&logoColor=white&style=flat-square)](.github/workflows/nodejs-ci-template.yml)
+[![Python CI](https://img.shields.io/badge/Python-CI-blue?logo=python&logoColor=white&style=flat-square)](.github/workflows/python-ci-template.yml)
+[![Terraform CI](https://img.shields.io/badge/Terraform-CI-purple?logo=terraform&logoColor=white&style=flat-square)](.github/workflows/terraform-ci-template.yml)
+[![License](https://img.shields.io/badge/License-MIT-lightgrey.svg?style=flat-square)](LICENSE)
 
 ---
 
 ## 📖 Overview
 
-Centralize your CI/CD workflows with **reusable GitHub Actions templates**. This repository allows you to:
+Welcome to the **Soltania DevOps Centralized Library**. This repository functions as a Shared Service for CI/CD pipelines, acting as the **Single Source of Truth** for automation logic across the organization's ecosystem.
 
-* ✅ Apply **DRY principles**
-* ✅ Maintain a **single source of truth**
-* ✅ Simplify updates across multiple repositories
-
----
-
-## 📑 Table of Contents
-
-* [Key Features](#-key-features)
-* [Repository Structure](#-repository-structure)
-* [How It Works](#-how-it-works)
-* [Example Workflow](#-example-workflow)
-* [Architecture](#-architecture)
-* [Repositories Using This Template](#-repositories-using-this-template)
-* [Benefits](#-benefits-of-a-centralized-workflow-repo)
-* [Contributing](#-contributing)
-* [License](#-license)
+### 🎯 Objective
+As a **Solutions Architect**, this repository allows me to:
+* **Enforce Governance:** Ensure all projects adhere to the same security and testing standards.
+* **Implement DRY Principles:** Define pipeline logic once, apply it everywhere.
+* **Accelerate Delivery:** Developers focus on code, not on configuring YAML files.
 
 ---
 
-## 🔑 Key Features
+## 🏗 Architecture
 
-* 🛠️ **Reusable workflows**: share CI/CD templates across multiple projects
-* ⚡ **Simplified maintenance**: update once, benefit everywhere
-* 🔐 **Secure**: supports `secrets: inherit`
-* 🚀 **Node.js template ready** (`nodejs-ci-template.yml`)
-* 🐳 **Docker-ready workflows**
-* 🌍 **Terraform & Cloud workflows**
-* 🎨 **Visual diagrams** to understand architecture
-
----
-
-## 📂 Repository Structure
-
-```text
-/
-├── .github/
-│   └── workflows/
-│       └── nodejs-ci-template.yml  # Reusable Node.js CI workflow
-├── README.md                       # Project documentation
-```
-
----
-
-## ⚙️ How It Works
-
-Call workflows from another repository:
-
-```yaml
-jobs:
-  nodejs-workflow:
-    uses: soltani-a/soltania-devops-github-actions-templates-prototype/.github/workflows/nodejs-ci-template.yml@main
-    secrets: inherit
-    with:
-      node-version: '20'
-      working-directory: ''
-```
-
-* **`uses`**: reference the reusable workflow
-* **`secrets: inherit`**: automatically uses secrets from the calling repository
-* **`with`**: input variables for workflow customization
-
-[View Node.js CI Template](.github/workflows/nodejs-ci-template.yml)
-
----
-
-## ⚡ Example Workflow
-
-Add this to `.github/workflows/main.yml` in your repository:
-
-```yaml
-name: Run Node.js CI
-on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
-
-jobs:
-  nodejs-workflow:
-    uses: soltani-a/soltania-devops-github-actions-templates-prototype/.github/workflows/nodejs-ci-template.yml@main
-    secrets: inherit
-    with:
-      node-version: '20'
-```
-
-Push your changes and watch the workflow execute automatically.
-
----
-
-## 🏛 Architecture
+The following diagram illustrates the relationship between this centralized template repository and the consumer repositories ("Satellite Repos").
 
 ```mermaid
 graph TD
-    A[Workflow Template Repo]:::template
-    B[Repo A]:::repo
-    C[Repo B]:::repo
-    D[Terraform Workflows]:::workflow
-    E[Docker Workflows]:::workflow
-    B -->|Calls workflow| A
-    C -->|Calls workflow| A
-    B -->|Calls workflow| D
-    C -->|Calls workflow| E
-    classDef template fill:#0366d6,stroke:#fff,stroke-width:2px,color:#fff
-    classDef repo fill:#28a745,stroke:#fff,stroke-width:2px,color:#fff
-    classDef workflow fill:#f1c40f,stroke:#fff,stroke-width:2px,color:#fff
+    subgraph "Centralized Hub (This Repo)"
+        HUB[<b>soltania-devops-templates</b>]:::hub
+        NODE(Node.js Workflow):::templ
+        PY(Python Workflow):::templ
+        TF(Terraform Workflow):::templ
+        
+        HUB --- NODE
+        HUB --- PY
+        HUB --- TF
+    end
+
+    subgraph "Consumer Ecosystem"
+        R1[<b>Functional Tests</b><br/>(Bruno/API)]:::consumer
+        R2[<b>Infra Governance</b><br/>(GitHub Provider)]:::consumer
+        R3[<b>Future Projects</b>]:::consumer
+    end
+
+    R1 -.->|Inherits| TF
+    R2 -.->|Inherits| TF
+    R3 -.->|Inherits| NODE
+
+    classDef hub fill:#2c3e50,stroke:#fff,stroke-width:2px,color:#fff
+    classDef templ fill:#34495e,stroke:#95a5a6,color:#fff
+    classDef consumer fill:#27ae60,stroke:#fff,stroke-width:2px,color:#fff
+````
+
+-----
+
+## 📦 Available Workflows & Usage
+
+To use a workflow, create a YAML file in your repository (e.g., `.github/workflows/ci.yml`) and reference the specific template.
+
+### 🟢 Node.js CI
+
+*Standardizes linting, testing, and building for Node applications.*
+
+| Input | Description | Default |
+| :--- | :--- | :--- |
+| `node-version` | The specific Node.js version to use. | `20` |
+| `working-dir` | The directory containing package.json. | `.` |
+
+```yaml
+jobs:
+  build:
+    uses: soltani-a/soltania-devops-github-actions-templates-prototype/.github/workflows/nodejs-ci-template.yml@main
+    secrets: inherit
+    with:
+      node-version: '20'
 ```
 
----
+### 🔵 Python CI
 
-## 📦 Repositories Using This Template
+*Handles Python dependency installation, Linting (Flake8), and Testing (Pytest).*
 
-| Repository                                                                                                        | Description                                 |
-| ----------------------------------------------------------------------------------------------------------------- | ------------------------------------------- |
-| [soltania-devops-tf-functional-test-bruno](https://github.com/soltani-a/soltania-devops-tf-functional-test-bruno) | Runs Bruno CLI tests in CI/CD               |
-| [soltania-devops-tf-github-prototype](https://github.com/soltani-a/soltania-devops-tf-github-prototype)           | Manages GitHub repositories using Terraform |
-
----
-
-## 🌟 Benefits of a Centralized Workflow Repo
-
-* ✅ **Consistency**: one source of truth for pipelines
-* ✅ **Scalability**: easily add new workflows (Terraform, Docker, Node.js, AWS)
-* ✅ **Maintainability**: fix bugs or upgrade tools in one place
-* ✅ **Security**: centralize secrets and authentication best practices
-
----
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch:
-
-```bash
-git checkout -b feature/new-workflow
+```yaml
+jobs:
+  test:
+    uses: soltani-a/soltania-devops-github-actions-templates-prototype/.github/workflows/python-ci-template.yml@main
+    secrets: inherit
+    with:
+      python-version: '3.10'
 ```
 
-3. Commit your changes:
+### 🟣 Terraform CI
 
-```bash
-git commit -m 'Add a new reusable workflow'
+*Manages the Infrastructure as Code lifecycle: Formatting, Validation, Linting, and Planning.*
+
+```yaml
+jobs:
+  terraform:
+    uses: soltani-a/soltania-devops-github-actions-templates-prototype/.github/workflows/terraform-ci-template.yml@main
+    secrets: inherit
+    with:
+      tf-version: '1.5.0'
 ```
 
-4. Push and open a Pull Request
+-----
 
----
+## 🌍 Portfolio: Repositories Using This Template
+
+This section demonstrates the **scalability** of this architecture. The following repositories currently rely on these centralized templates for their CI/CD:
+
+| Repository | Domain | Template Used | Purpose |
+| :--- | :--- | :---: | :--- |
+| [**soltania-devops-tf-functional-test-bruno**](https://github.com/soltani-a/soltania-devops-tf-functional-test-bruno) | 🧪 QA / Testing | `Terraform` | Automating functional API testing using the Bruno CLI tool. |
+| [**soltania-devops-tf-github-prototype**](https://github.com/soltani-a/soltania-devops-tf-github-prototype) | 🛡️ Governance | `Terraform` | Managing GitHub repositories, teams, and permissions via IaC. |
+
+-----
+
+## 🤝 Contributing & Governance
+
+Contributions are welcome\! If you wish to add a new workflow or improve an existing one, please follow these steps:
+
+1.  **Fork** the repository.
+2.  Create a **Feature Branch** (`git checkout -b feature/new-template`).
+3.  **Test Locally** using `nektos/act` or a private fork.
+4.  Open a **Pull Request**.
+
+-----
 
 ## 📜 License
 
-This project is licensed under the **MIT License**. See the [LICENSE](LICENSE) file for details.
-
----
-
-> 💡 **Tip:** Make your repository “Reusable Workflow Ready” by following GitHub’s [documentation](https://docs.github.com/en/actions/using-workflows/reusing-workflows).
+This project is licensed under the MIT License - see the [LICENSE](https://www.google.com/search?q=LICENSE) file for details.
