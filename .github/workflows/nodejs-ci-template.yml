@@ -30,13 +30,13 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4.2.1
+        uses: actions/checkout@v6.0.1
 
       - name: Display files
         run: ls -la  # List the files to verify they are downloaded
 
       - name: Setup Node.js ${{ inputs.node-version }}
-        uses: actions/setup-node@v4.0.4
+        uses: actions/setup-node@v6.1.0
         with:
           node-version: ${{ inputs.node-version }}
 
@@ -54,7 +54,7 @@ jobs:
 
       - name: SonarCloud Scan
         if: env.SONAR_PROJECT_KEY != '' && env.SONAR_ORGANIZATION != '' && env.SONAR_TOKEN != ''
-        uses: sonarsource/sonarcloud-github-action@v3.1.0
+        uses: sonarsource/sonarcloud-github-action@v5.0.0
         with:
           projectBaseDir: ${{ inputs.working-directory }}
           args: >
