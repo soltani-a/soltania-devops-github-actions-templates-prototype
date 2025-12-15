@@ -79,7 +79,7 @@ jobs:
 
       # Cache Terraform plugins to speed up the workflow
       - name: Cache Terraform plugins
-        uses: actions/cache@v4.3.0
+        uses: actions/cache@v5.0.1
         with:
           path: ~/.terraform.d/plugin-cache
           key: terraform-plugin-${{ hashFiles('**/*.tf') }}
@@ -161,7 +161,7 @@ jobs:
 
       # Upload the Terraform plan as an artifact
       - name: Upload Terraform Plan
-        uses: actions/upload-artifact@v5.0.0
+        uses: actions/upload-artifact@v6.0.0
         with:
           name: terraform-tfplan
           path: ${{ inputs.terraform-directory }}/terraform.tfplan
@@ -194,7 +194,7 @@ jobs:
     steps:
     # Download the Terraform plan from the previous step
       - name: Download Terraform Plan
-        uses: actions/download-artifact@v6.0.0
+        uses: actions/download-artifact@v7.0.0
         with:
           name: terraform-tfplan
           
